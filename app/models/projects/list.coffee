@@ -12,6 +12,7 @@ utilModel = require '../util/'
 ks.set 'projects:list', []
 
 projectHashes = []
+executedTasks = {}
 
 # emit subdirectory content through emitter
 dirEmitter = (path) ->
@@ -26,6 +27,13 @@ dirEmitter = (path) ->
           path: jetpack.cwd(path, file).path()
         emitter.emit(val)
       emitter.end()
+
+setProjectTask = (projectId, task = null) ->
+  projects = ks.get("projects:list")
+  arrIndex = projects.findIndex (project) -> return project?.id is projectId
+  if arrIndex and projects[arrIndex]?
+    projects[arrIndex].executedTask = executedTasks[projectId] = task
+    ks.set "projects:list", projects
 
 model = {};
 model.getList = () ->
@@ -121,6 +129,9 @@ model.loadProjects = (callback) ->
       return 1 if a.name > b.name
       return 0;
 
+    for project,index in foundProjects
+      foundProjects[index].executedTask = executedTasks[project.id] if executedTasks[foundProjects[index].id]
+
     ks.set 'projects:certs', projectCerts
     ks.set 'projects:list', foundProjects
     return callback null, [foundProjects, projectCerts] if callback
@@ -141,21 +152,29 @@ model.startProject = (project, callback) ->
   logName = "res:project:start:#{project.id}"
 
   return ks.log logName, "script start does not exist\n" unless project.scripts?["start"]
-  utilModel.runCmd project.scripts["start"], {cwd: project.path}, logName, callback
+  setProjectTask project.id, "starting"
+  utilModel.runCmd project.scripts["start"], {cwd: project.path}, logName, (err, result) ->
+    setProjectTask project.id
+    callback? err, result
 
 model.stopProject = (project, callback) ->
   return callback? new Error 'invalid project given' if typeof project != "object" || ! project.path?
   logName = "res:project:stop:#{project.id}"
 
   return ks.log logName, "script stop does not exist\n" unless project.scripts?["stop"]
-  utilModel.runCmd project.scripts["stop"], {cwd: project.path}, logName, callback
+  setProjectTask project.id, "stopping"
+  utilModel.runCmd project.scripts["stop"], {cwd: project.path}, logName, (err, result) ->
+    setProjectTask project.id
+    callback? err, result
 
 model.updateProject = (project, callback) ->
   return callback new Error 'invalid project given' if typeof project != "object" || ! project.path?
   logName = "res:project:update:#{project.id}"
 
   ks.log logName, ["Start pulling...\n"]
+  setProjectTask project.id, "updating"
   utilModel.runCmd "git pull", {cwd: project.path}, logName, (err, result) ->
+    setProjectTask project.id
     return callback err if err
     model.loadProjects callback
 
