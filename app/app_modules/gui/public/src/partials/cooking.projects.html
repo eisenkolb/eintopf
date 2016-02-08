@@ -5,8 +5,14 @@
         <h4 class="m0 p0 muted">Your Projects</h4>
       </div>
       <div class="grd-row my1 p0">
-        <a ui-sref="cooking.projects.create" class="grd-row-col-6 my1 p0 btn-green small">
-          <i class="fa fa-plus-circle "><span> Create Project</span></i>
+        <a ui-sref="cooking.projects.create" class="grd-row-col-6 my1 p0 btn-green small" ng-hide="searchView">
+          <i class="fa fa-plus-circle"><span> Create Project</span></i>
+        </a>
+        <a class="grd-row-col-6 my1 p0 btn-green small" ng-hide="!searchView">
+          <input ng-model="searchTerm" filter-sidebar="searchTerm" id="searchTerm"
+                 style="border:none;
+                 background-color:transparent;
+                 margin:-4px;">
         </a>
       </div>
 
@@ -14,7 +20,7 @@
     <div class="cssMenu p1 m0">
       <ul class="list--unstyled  p0 m0">
 
-        <li ng-repeat="(key, value) in projects" class="m0 grd-row txt--left" id="{{value.id}}">
+        <li ng-repeat="(key, value) in projects | filter:{name: searchTerm}:false" class="m0 grd-row txt--left" id="{{value.id}}">
           <a class="grd-row-col-6 py2 btn--link txt--left"
              ui-sref="cooking.projects.recipe({id: '{{value.id}}'})" ui-sref-active='active'>
             <div class="media">
