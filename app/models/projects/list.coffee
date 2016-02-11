@@ -185,7 +185,7 @@ model.callAction = (project, action, callback) ->
   logName = "res:project:action:script:#{project.id}"
 
   return ks.log logName, "script '#{action.script}' does not exists\n" unless project.scripts?[action.script]
-  setProjectTask project.id, "action"
+  setProjectTask project.id, "action: #{action.script}"
   utilModel.runCmd project.scripts[action.script], {cwd: project.path}, logName, (err, result) ->
     setProjectTask project.id
     callback? err, result
