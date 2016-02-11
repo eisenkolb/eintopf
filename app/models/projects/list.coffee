@@ -28,12 +28,20 @@ dirEmitter = (path) ->
         emitter.emit(val)
       emitter.end()
 
-setProjectTask = (projectId, task = null) ->
+setProjectTask = (projectId, taskName, insert = false) ->
   projects = ks.get("projects:list")
   arrIndex = projects.findIndex (project) -> return project?.id is projectId
-  if arrIndex and projects[arrIndex]?
-    projects[arrIndex].executedTask = executedTasks[projectId] = task
-    ks.set "projects:list", projects
+  return if not arrIndex or not projects[arrIndex]?
+
+  if insert is false and projects[arrIndex]?.executedTask?
+    task = projects[arrIndex].executedTask
+    task = task.filter((entry) -> return entry != taskName)
+  else if insert is true
+    task = projects[arrIndex].executedTask || []
+    task.push(taskName)
+
+  projects[arrIndex].executedTask = executedTasks[projectId] = task
+  ks.set "projects:list", projects
 
 model = {};
 model.getList = () ->
@@ -152,9 +160,9 @@ model.startProject = (project, callback) ->
   logName = "res:project:start:#{project.id}"
 
   return ks.log logName, "script start does not exist\n" unless project.scripts?["start"]
-  setProjectTask project.id, "starting"
+  setProjectTask project.id, "starting", true
   utilModel.runCmd project.scripts["start"], {cwd: project.path}, logName, (err, result) ->
-    setProjectTask project.id
+    setProjectTask project.id, "starting"
     callback? err, result
 
 model.stopProject = (project, callback) ->
@@ -162,9 +170,9 @@ model.stopProject = (project, callback) ->
   logName = "res:project:stop:#{project.id}"
 
   return ks.log logName, "script stop does not exist\n" unless project.scripts?["stop"]
-  setProjectTask project.id, "stopping"
+  setProjectTask project.id, "stopping", true
   utilModel.runCmd project.scripts["stop"], {cwd: project.path}, logName, (err, result) ->
-    setProjectTask project.id
+    setProjectTask project.id, "stopping"
     callback? err, result
 
 model.updateProject = (project, callback) ->
@@ -172,9 +180,9 @@ model.updateProject = (project, callback) ->
   logName = "res:project:update:#{project.id}"
 
   ks.log logName, ["Start pulling...\n"]
-  setProjectTask project.id, "updating"
+  setProjectTask project.id, "updating", true
   utilModel.runCmd "git pull", {cwd: project.path}, logName, (err, result) ->
-    setProjectTask project.id
+    setProjectTask project.id, "updating"
     return callback err if err
     model.loadProjects callback
 
@@ -185,9 +193,9 @@ model.callAction = (project, action, callback) ->
   logName = "res:project:action:script:#{project.id}"
 
   return ks.log logName, "script '#{action.script}' does not exists\n" unless project.scripts?[action.script]
-  setProjectTask project.id, "action: #{action.script}"
+  setProjectTask project.id, "action: #{action.script}", true
   utilModel.runCmd project.scripts[action.script], {cwd: project.path}, logName, (err, result) ->
-    setProjectTask project.id
+    setProjectTask project.id, "action: #{action.script}"
     callback? err, result
 
 module.exports = model;
