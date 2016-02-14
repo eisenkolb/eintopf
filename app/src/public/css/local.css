@@ -412,3 +412,28 @@ body {
 
 }
 
+.cssProjectSearch {
+    background: linear-gradient(to bottom, rgba(236, 122, 122, 0.91) 0%, rgba(8, 10, 39, 0.71) 100%);
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    z-index: 1033;
+    top: 0;
+}
+
+.cssProjectSearch angucomplete input {
+    border: 4px #D0B941 solid;
+}
+
+.cssProjectSearch angucomplete .angucomplete-holder {
+    width: 60%;
+    margin: 25% auto;
+}
+
+.cssProjectSearch angucomplete .angucomplete-title {
+    font-weight: bold;
+}
+
+.cssProjectSearch angucomplete #angucomplete_dropdown{
+    width: 100%;
+}

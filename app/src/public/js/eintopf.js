@@ -4,6 +4,7 @@ var eintopf = angular.module('eintopf', [
   'vtortola.ng-terminal',
   'luegg.directives',
   'hc.marked',
+  'angucomplete',
   'eintopf.services.ipc',
   'eintopf.services.storage'
 ]);
