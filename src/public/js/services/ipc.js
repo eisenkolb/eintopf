@@ -13,6 +13,7 @@ angular.module('eintopf.services.ipc', [])
   };
   ipc.emit = function(eventName, value) {
     if (!eventName) return false;
+    if (typeof value === 'object') value = JSON.parse(JSON.stringify(value));
     ipcRenderer.send(eventName, value);
   };
 
@@ -121,7 +122,7 @@ angular.module('eintopf.services.ipc', [])
   }
 }])
 
-.service('reqProjectStartAction', ['ipc', function (ipc){
+.service('reqProjectAction', ['ipc', function (ipc){
   return {
     emit: function (data){
       ipc.emit('project:action:script', data);
@@ -258,7 +259,7 @@ angular.module('eintopf.services.ipc', [])
   }
 }])
 
-.factory('resProjectStartAction', ['ipc', 'storage', function (ipc, storage) {
+.factory('resProjectAction', ['ipc', 'storage', function (ipc, storage) {
   var streams = {};
   return {
     fromProject: function (project){
